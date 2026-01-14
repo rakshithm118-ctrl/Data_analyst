@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/Rakshtih.M/OneDrive/Desktop/PROJECT.sql" readonly="0" foreign_keys="0" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3181"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="sod_register" custom_title="0" dock_id="1" table="4,12:mainsod_register"/><dock_state state="000000ff00000000fd0000000100000002000001180000017ffc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000001180000015c00ffffff000001180000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="sod_register" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="288"/><column index="2" value="210"/><column index="3" value="135"/><column index="4" value="82"/><column index="5" value="130"/><column index="6" value="127"/><column index="7" value="109"/><column index="8" value="71"/><column index="9" value="124"/><column index="10" value="210"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">SELECT COUNT(*) FROM sod_register;
+SELECT COUNT(*) FROM sod_session_start;
+SELECT COUNT(*) FROM sod_revenue;
+SELECT COUNT(*) FROM sod_adrevenue;
+SELECT COUNT(*) FROM sod_battle_short;
+SELECT 
+    COUNT(DISTINCT user_id) AS day1_active_users
+FROM sod_session_start
+WHERE user_point_in_lifetime = 1;
+
+SELECT 
+    COUNT(DISTINCT user_id) AS day3_active_users
+FROM sod_session_start
+WHERE user_point_in_lifetime = 3;
+SELECT 
+    COUNT(DISTINCT user_id) AS day7_active_users
+FROM sod_session_start
+WHERE user_point_in_lifetime = 7;
+SELECT
+    ROUND(
+        COUNT(DISTINCT CASE 
+            WHEN ss.user_point_in_lifetime = 7 THEN ss.user_id 
+        END) * 100.0
+        / COUNT(DISTINCT r.user_id),
+        2
+    ) AS day1_retention_percent
+FROM sod_register r
+LEFT JOIN sod_session_start ss
+    ON r.user_id = ss.user_id;
+	
+SELECT 
+    r.user_country,
+    ROUND(
+        COUNT(DISTINCT CASE 
+            WHEN ss.user_point_in_lifetime = 7 THEN r.user_id 
+        END) * 100.0 
+        / COUNT(DISTINCT r.user_id),
+    2) AS day7_retention_percent
+FROM sod_register r
+LEFT JOIN sod_session_start ss
+    ON r.user_id = ss.user_id
+GROUP BY r.user_country
+ORDER BY day7_retention_percent DESC;	
+SELECT *
+FROM sod_register
+LIMIT 5;
+SELECT 
+    r.user_device_platform,
+    COUNT(DISTINCT r.user_id) AS total_users,
+    ROUND(
+        COUNT(DISTINCT CASE 
+            WHEN ss.user_point_in_lifetime = 7 THEN r.user_id 
+        END) * 100.0
+        / COUNT(DISTINCT r.user_id),
+        3
+    ) AS day7_retention_percent
+FROM sod_register r
+LEFT JOIN sod_session_start ss
+    ON r.user_id = ss.user_id
+GROUP BY r.user_device_platform
+ORDER BY day7_retention_percent DESC;
+SELECT
+    DATE(event_time) AS install_date,
+    COUNT(DISTINCT user_id) AS installs
+FROM sod_register
+GROUP BY DATE(event_time)
+ORDER BY install_date;
+SELECT
+    DATE(event_time) AS revenue_date,
+    SUM(revenue) AS total_revenue
+FROM sod_revenue
+GROUP BY DATE(event_time)
+ORDER BY DATE(event_time);
+SELECT *
+FROM sod_revenue
+LIMIT 5;
+SELECT
+    DATE(event_time) AS revenue_date,
+    SUM(user_point_in_lifetime) AS total_revenue
+FROM sod_revenue
+GROUP BY DATE(event_time)
+ORDER BY DATE(event_time);
+SELECT
+    r.user_device_platform,
+    SUM(rv.user_point_in_lifetime) AS total_revenue
+FROM sod_revenue rv
+JOIN sod_register r
+    ON rv.user_id = r.user_id
+GROUP BY r.user_device_platform
+ORDER BY total_revenue DESC;</sql><current_tab id="0"/></tab_sql></sqlb_project>
